@@ -12,7 +12,8 @@ public class CameraMotor : MonoBehaviour
     {
         if (lookAt == null)
         {
-            transform.position = new Vector3(0f,0f,0f);
+            transform.position = new Vector3(0f,0f,transform.position.z);
+            return;
         }
         Vector3 delta = Vector3.zero;
 

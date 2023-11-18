@@ -1,50 +1,228 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    public static string gameState;
-
     [SerializeField] GameObject playerPrefab;
-    [SerializeField] CameraMotor mainCamera;
+    [SerializeField] CameraMotor cameraMotor;
+    [SerializeField] Camera mainCamera;
     GameObject currentPlayer;
     PlayerController curPlayerScript;
 
-    void Awake(){
-        gameState = "menu";
-        StartGame();
+    void Awake()
+    {
         curScore = 0;
         highScore = 0;
+        ShowUI("mainmenu");
     }
-    public void StartGame(){
+
+    public void ToMainMenu(){
+        ShowUI("mainmenu");
+    }
+
+    IEnumerator inGameCoroutine;
+    public void StartGame()
+    {
+        curScore = 0f;
         InstantiatePlayer();
-        mainCamera.lookAt = currentPlayer.transform;
+        cameraMotor.lookAt = currentPlayer.transform;
+        if (inGameCoroutine != null)
+        {
+            inGameCoroutine = null;
+        }
+        inGameCoroutine = InGameCoroutine();
+        StartCoroutine(inGameCoroutine);
+        ShowUI("ingame");
     }
-    GameObject InstantiatePlayer(){
-        if(currentPlayer != null){
+    GameObject InstantiatePlayer()
+    {
+        if (currentPlayer != null)
+        {
             Destroy(currentPlayer);
         }
-        GameObject newPlayer = Instantiate(playerPrefab, new Vector3(0f,0f,0f), transform.rotation);
+        GameObject newPlayer = Instantiate(playerPrefab, new Vector3(0f, 0f, 0f), transform.rotation);
         currentPlayer = newPlayer;
         curPlayerScript = newPlayer.GetComponent<PlayerController>();
+        curPlayerScript.mc = mainCamera;
         return newPlayer;
     }
-    public void ShowMenu(){
+    public void GameOver()
+    {
+        StopCoroutine(inGameCoroutine);
+        inGameCoroutine = null;
+        Destroy(currentPlayer);
 
+        ShowUI("gameover");
+        if (curScore > highScore)
+        {
+            highScore = curScore;
+        }
     }
-    public void ShowGameOver(){
-
+    [SerializeField] GameObject mainMenuUI;
+    [SerializeField] GameObject gameOverUI;
+    [SerializeField] Text gameOverScoreDisplay;
+    [SerializeField] GameObject inGameUI;
+    [SerializeField] Text highScoreText;
+    public void ShowUI(string UIName)
+    {
+        gameOverUI.SetActive(false);
+        inGameUI.SetActive(false);
+        mainMenuUI.SetActive(false);
+        switch (UIName)
+        {
+            case "mainmenu":
+                mainMenuUI.SetActive(true);
+                highScoreText.text = "" + highScore;
+                break;
+            case "gameover":
+                gameOverUI.SetActive(true);
+                gameOverScoreDisplay.text = "" + curScore;
+                break;
+            case "ingame":
+                inGameUI.SetActive(true);
+                break;
+        }
     }
-    public void ShowGameUI(){
 
+    float timerStart;
+    float timerEnd;
+    float nextActorSpawn;
+    IEnumerator InGameCoroutine()
+    {
+        timerStart = Time.time;
+        timerEnd = timerStart += 60f;
+        nextActorSpawn = timerStart + 10f;
+
+        SpawnActor();
+        SpawnActor();
+        
+        bool gameOver = false;
+        while (!gameOver)
+        {
+            AddScore();
+            
+            if(Time.time > nextActorSpawn){
+                SpawnActor();
+                nextActorSpawn = Time.time + 10f;
+            }
+
+            if (Time.time > timerEnd)
+            {
+                gameOver = true;
+                break;
+            }
+            yield return null;
+        }
+        GameOver();
+        yield return null;
+    }
+    void AddScore()
+    {
+        float POVSizeMult = currentPlayer.transform.localScale.x;
+
+        float distanceFrom = (currentPlayer.transform.position - GetCenterPosition()).magnitude / POVSizeMult;
+        float distanceFromPerfectMult = 1f / Mathf.Max(0.1f, distanceFrom);
+        float zoomFrom = GetFarthestZoomDistance();
+        float zoomFromPerfectMult = 1f / Mathf.Max(0.1f, zoomFrom);
+        curScore += 1f * distanceFromPerfectMult * zoomFromPerfectMult;
+        curScoreText.text = "" + (int)curScore;
+
+        float green = 1f * (distanceFromPerfectMult * zoomFromPerfectMult);
+        float red = 1f - green;
+        curPlayerScript.POVSprite.color = new Color(red, green, 0f, curPlayerScript.POVSprite.color.a);
+        Debug.Log($"mult distance: {distanceFromPerfectMult}\nmult zoom: {zoomFromPerfectMult}");
+    }
+    float GetFarthestZoomDistance()
+    {
+        float farthest = 0f;
+        float topBound = curPlayerScript.topLeft.position.y;
+        float botBound = curPlayerScript.botLeft.position.y;
+        float leftBound = curPlayerScript.topLeft.position.x;
+        float rightBound = curPlayerScript.botRight.position.x;
+        foreach (Transform actorTran in allActorTrans)
+        {
+            
+            if (topBound - actorTran.position.y > farthest)
+            {
+                farthest = topBound - actorTran.position.y;
+            }
+            if(actorTran.position.y > topBound){
+                farthest = 999f;
+            }
+            
+            if (actorTran.position.y - botBound > farthest)
+            {
+                farthest = actorTran.position.y - botBound;
+            }
+            if(actorTran.position.y < botBound){
+                farthest = 999f;
+            }
+            
+            if (rightBound - actorTran.position.x > farthest)
+            {
+                farthest = rightBound - actorTran.position.x;
+            }
+            if(actorTran.position.x > rightBound){
+                farthest = 999f;
+            }
+
+            if (actorTran.position.x - leftBound > farthest)
+            {
+                farthest = actorTran.position.x - leftBound;
+            }
+            if(actorTran.position.x < leftBound){
+                farthest = 999f;
+            }
+        }
+
+        return Mathf.Abs(farthest);
     }
 
-    public int curScore;
-    public int highScore;
+    float curScore;
+    [SerializeField] Text curScoreText;
+    float highScore;
     [SerializeField] GameObject actorPrefab;
     List<Transform> allActorTrans = new List<Transform>();
-    void createNewActor(){
-        GameObject newActor = Instantiate(actorPrefab, new Vector3(0f,0f,0f), transform.rotation);
+    void SpawnActor()
+    {
+        GameObject newActor = Instantiate(actorPrefab, new Vector3(0f, 0f, 0f), transform.rotation);
+        allActorTrans.Add(newActor.transform);
+    }
+
+    Vector3 GetCenterPosition()
+    {
+        float maxY = 0f;
+        float minY = 0f;
+        float maxX = 0f;
+        float minX = 0f;
+        foreach (Transform actorTran in allActorTrans)
+        {
+            if (actorTran.position.y > maxY)
+            {
+                maxY = actorTran.position.y;
+            }
+            if (actorTran.position.y < minY)
+            {
+                minY = actorTran.position.y;
+            }
+            if (actorTran.position.x > maxX)
+            {
+                maxX = actorTran.position.x;
+            }
+            if (actorTran.position.x < minX)
+            {
+                minX = actorTran.position.x;
+            }
+        }
+        Vector3 output = new Vector3((maxY + minY) / 2f, (maxX + minX) / 2f, 0f);
+        Debug.Log($"CenterPos: {output.x}, {output.y}");
+        return output;
+    }
+
+    public void ExitApplication()// referenced by button objects
+    {
+        Application.Quit();
     }
 }

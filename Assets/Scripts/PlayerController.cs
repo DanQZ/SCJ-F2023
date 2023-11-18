@@ -5,10 +5,16 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     float speed = 5f;
-    [SerializeField] Transform topLeft;
-    [SerializeField] Transform topRight;
-    [SerializeField] Transform botLeft;
-    [SerializeField] Transform botRight;
+    public Transform topLeft;
+    public Transform topRight;
+    public Transform botLeft;
+    public Transform botRight;
+    public SpriteRenderer POVSprite;
+    public Camera mc;
+
+    void Start(){
+        mc.GetComponent<Camera>().orthographicSize = 5f;
+    }
 
     // Update is called once per frame
     void Update()
@@ -16,6 +22,7 @@ public class PlayerController : MonoBehaviour
         Controls();
     }
     void Controls(){
+        speed = 5f * transform.localScale.x;
         if (Input.GetKey("w")) {
             transform.position += Vector3.up * speed * Time.deltaTime;
         }
@@ -30,10 +37,12 @@ public class PlayerController : MonoBehaviour
         }
         
         if (Input.GetKey("up")) {
-            transform.position += Vector3.up * speed* Time.deltaTime;
+            transform.localScale /= 1.01f;
+            mc.GetComponent<Camera>().orthographicSize /= 1.01f;
         }
         if (Input.GetKey("down")) {
-            transform.position -= Vector3.up * speed* Time.deltaTime;
+            transform.localScale *= 1.01f;
+            mc.GetComponent<Camera>().orthographicSize *= 1.01f;
         }
     }
 }

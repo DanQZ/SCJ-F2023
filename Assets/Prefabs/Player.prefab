@@ -80,6 +80,8 @@ MonoBehaviour:
   topRight: {fileID: 6421618385285208851}
   botLeft: {fileID: 600735778784271744}
   botRight: {fileID: 717139337513913837}
+  POVSprite: {fileID: 5422505730872719184}
+  mc: {fileID: 0}
 --- !u!1 &1885754783414805731
 GameObject:
   m_ObjectHideFlags: 0
@@ -167,7 +169,7 @@ Transform:
   m_GameObject: {fileID: 3856506334145480647}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.25, y: 0.25, z: 1}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7269745695036474258}
