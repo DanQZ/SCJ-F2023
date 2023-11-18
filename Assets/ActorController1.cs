@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ActorController : MonoBehaviour
+public class ActorController1 : MonoBehaviour
 {
     public float moveDuration = 2;
     public Vector2 target = new Vector2(0, 50);
