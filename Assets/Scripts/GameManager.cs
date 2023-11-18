@@ -46,6 +46,7 @@ public class GameManager : MonoBehaviour
         currentPlayer = newPlayer;
         curPlayerScript = newPlayer.GetComponent<PlayerController>();
         curPlayerScript.mc = mainCamera;
+        curPlayerScript.gm = this;
         return newPlayer;
     }
     public void GameOver()
@@ -93,8 +94,10 @@ public class GameManager : MonoBehaviour
     {
         timerStart = Time.time;
         timerEnd = timerStart += 60f;
-        nextActorSpawn = timerStart + 10f;
+        nextActorSpawn = timerStart + 5f;
 
+        SpawnActor();
+        SpawnActor();
         SpawnActor();
         SpawnActor();
         
@@ -122,8 +125,12 @@ public class GameManager : MonoBehaviour
     {
         float POVSizeMult = currentPlayer.transform.localScale.x;
 
-        float distanceFrom = (currentPlayer.transform.position - GetCenterPosition()).magnitude / POVSizeMult;
+        Vector3 distanceDiff = currentPlayer.transform.position - GetCenterPosition();
+        float distanceFrom = new Vector3(distanceDiff.x, distanceDiff.y,0f).magnitude / POVSizeMult;
         float distanceFromPerfectMult = 1f / Mathf.Max(0.1f, distanceFrom);
+
+        //currentPlayer.transform.position = GetCenterPosition();
+
         float zoomFrom = GetFarthestZoomDistance();
         float zoomFromPerfectMult = 1f / Mathf.Max(0.1f, zoomFrom);
         curScore += 1f * distanceFromPerfectMult * zoomFromPerfectMult;
@@ -191,12 +198,19 @@ public class GameManager : MonoBehaviour
         allActorTrans.Add(newActor.transform);
     }
 
+    public void SetActorSize(Vector3 scale){
+        foreach (Transform actorTran in allActorTrans)
+        {
+            actorTran.localScale = scale;
+        }
+    }
+
     Vector3 GetCenterPosition()
     {
-        float maxY = 0f;
-        float minY = 0f;
-        float maxX = 0f;
-        float minX = 0f;
+        float maxY = allActorTrans[0].transform.position.y;
+        float minY = allActorTrans[0].transform.position.y;
+        float maxX = allActorTrans[0].transform.position.x;
+        float minX = allActorTrans[0].transform.position.x;
         foreach (Transform actorTran in allActorTrans)
         {
             if (actorTran.position.y > maxY)
@@ -216,7 +230,7 @@ public class GameManager : MonoBehaviour
                 minX = actorTran.position.x;
             }
         }
-        Vector3 output = new Vector3((maxY + minY) / 2f, (maxX + minX) / 2f, 0f);
+        Vector3 output = new Vector3((maxX + minX) / 2f, (maxY + minY) / 2f, 0f);
         Debug.Log($"CenterPos: {output.x}, {output.y}");
         return output;
     }

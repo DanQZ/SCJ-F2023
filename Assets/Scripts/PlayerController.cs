@@ -11,6 +11,7 @@ public class PlayerController : MonoBehaviour
     public Transform botRight;
     public SpriteRenderer POVSprite;
     public Camera mc;
+    public GameManager gm;
 
     void Start(){
         mc.GetComponent<Camera>().orthographicSize = 5f;
@@ -21,6 +22,7 @@ public class PlayerController : MonoBehaviour
     {
         Controls();
     }
+    float zoomSpeed = 1.005f;
     void Controls(){
         speed = 5f * transform.localScale.x;
         if (Input.GetKey("w")) {
@@ -35,14 +37,15 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKey("d")) {
             transform.position += Vector3.right * speed* Time.deltaTime;
         }
-        
         if (Input.GetKey("up")) {
-            transform.localScale /= 1.01f;
-            mc.GetComponent<Camera>().orthographicSize /= 1.01f;
+            transform.localScale /= zoomSpeed;
+            gm.SetActorSize(transform.localScale * 0.5f);
+            mc.GetComponent<Camera>().orthographicSize /= zoomSpeed;
         }
         if (Input.GetKey("down")) {
-            transform.localScale *= 1.01f;
-            mc.GetComponent<Camera>().orthographicSize *= 1.01f;
+            transform.localScale *= zoomSpeed;
+            gm.SetActorSize(transform.localScale* 0.5f);
+            mc.GetComponent<Camera>().orthographicSize *= zoomSpeed;
         }
     }
 }
