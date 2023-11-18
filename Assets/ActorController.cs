@@ -3,30 +3,23 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class ActorController : MonoBehaviour
-{
-    public float moveDuration = 5;
-    public Vector2 target = new Vector2(0, 5);
-    public Vector2 target2 = new Vector2(0, 0);
-    public Vector2 target3 = new Vector2(0, 0);
-    public Vector2 target4 = new Vector2(0, 0);
-    public Vector2 target5 = new Vector2(0, 0);
+{   
+    public float speed;
+    public float changeInterval; 
 
-    void Start() 
-    {
-        StartCoroutine(MoveActor(target));
+    private float timeSinceLastChange;
+    private Vector3 randomDirection;
+
+    private void Start()
+    {   
+        speed = Random.Range(1f,2f);
+        changeInterval = Random.Range(0.5f, 3f);
+        timeSinceLastChange = 0f;
+        SetRandomDirection();
     }
-    IEnumerator MoveActor(Vector2 targetPosition)
+
+    private void Update()
     {
-        Vector2 startPosition = transform.position;
-        float timeElapsed = 0;
-
-        while (timeElapsed < moveDuration) 
-        {
-            transform.position = Vector2.Lerp(startPosition, targetPosition, timeElapsed / moveDuration);
-            timeElapsed += Time.deltaTime;
-            yield return null;
-        }
-
-        transform.position = targetPosition;
+        
     }
 }
